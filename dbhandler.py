@@ -1,4 +1,5 @@
 import MySQLdb
+from werkzeug.security import generate_password_hash, check_password_hash
 from myconfig import host, user, password, database
 
 class dbhandler:
@@ -17,6 +18,36 @@ class dbhandler:
                 break
             except:
                 self.__init__()
+
+    def adminExist(self, username):
+        self.eternal()
+
+        self.c.execute('select 1 from admin where username = %s', (username, ))
+        return (self.c.rowcount > 0)
+
+    def registerAdmin(self, username, password):
+        if self.adminExist(username):
+            return False
+
+        self.eternal()
+        self.c.execute('insert into admin (username, password) values (%s, %s)', (username, generate_password_hash(password)))
+        self.conn.commit()
+
+        return True
+
+    def loginAdmin(self, username, password):
+        self.eternal()
+
+        self.c.execute('select password from admin where username = %s', (username, ))
+
+        if self.c.rowcount > 0:
+            res = self.c.fetchone()[0]
+            if check_password_hash(res, password):
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def addPlayer(self, playerId, name):
         self.eternal()
@@ -65,9 +96,9 @@ class dbhandler:
         self.eternal()
 
         if playerId == None:
-            self.c.execute('select user.playerId, user.name, out_message.message from user,out_message where out_message.id > %s and user.playerId = out_message.playerId', (lastId,))
+            self.c.execute('select out_message.time, user.playerId, user.name, out_message.message from user,out_message where out_message.id > %s and user.playerId = out_message.playerId order by out_message.time desc', (lastId,))
         else:
-            self.c.execute('select user.playerId, user.name, out_message.message from user,out_message where out_message.id > %s and user.playerId = out_message.playerId and user.playerId = %s', (lastId, playerId))
+            self.c.execute('select out_message.time, user.playerId, user.name, out_message.message from user,out_message where out_message.id > %s and user.playerId = out_message.playerId and user.playerId = %s order by out_message.time desc', (lastId, playerId))
 
         return self.c.fetchall()
 
@@ -75,9 +106,9 @@ class dbhandler:
         self.eternal()
 
         if playerId == None:
-            self.c.execute('select user.playerId, user.name, in_message.message from user,in_message where in_message.id > %s and user.playerId = in_message.playerId', (lastId,))
+            self.c.execute('select in_message.time, user.playerId, user.name, in_message.message from user,in_message where in_message.id > %s and user.playerId = in_message.playerId order by in_message.time desc', (lastId,))
         else:
-            self.c.execute('select user.playerId, user.name, in_message.message from user,in_message where in_message.id > %s and user.playerId = in_message.playerId and user.playerId = %s', (lastId, playerId))
+            self.c.execute('select in_message.time, user.playerId, user.name, in_message.message from user,in_message where in_message.id > %s and user.playerId = in_message.playerId and user.playerId = %s order by in_message.time desc', (lastId, playerId))
 
         return self.c.fetchall()
 
@@ -97,10 +128,4 @@ class dbhandler:
         self.eternal()
 
         self.c.execute('select playerId, name from user')
-        return self.c.fetchall()
-
-    def watch(self):
-        self.eternal()
-
-        self.c.execute('select in_message.time, user.name, in_message.message from user, in_message where user.playerId = in_message.playerId order by in_message.time desc')
         return self.c.fetchall()
