@@ -2,15 +2,16 @@
 {% block title %}Dashboard{% endblock %}
 {% block body %}
     <div class = "list-group">
-        {% for user in users %}
+        {% for chat in chats %}
             <div class = "list-group-item">
                 <div class = "row-action-primary">
                     <i class = "material-icons">account_circle</i>
                 </div>
 
                 <div class = "row-content">
-                    <h4 class = "list-group-item-heading">{{ user.name }}</h4>
-                    <p class = "list-group-item-text"><a href = "{{ user.link }}">Show</a></p>
+                    <div class="least-content">{{ chat.time }}</div>
+                    <h4 class = "list-group-item-heading">{{ chat.name }}</h4>
+                    <p class = "list-group-item-text">{{ chat.message }}</p>
                 </div>
             </div>
             <div class="list-group-separator"></div>
