@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+
+    {% for one_css in css %}
+        <link href="{{one_css}}" rel="stylesheet">
+    {% endfor %}
+
+  </head>
+  <body>
+
+    <div style = "margin-top: 40px">
+        <div class = "container">
+            {% block body %}{% endblock %}
+        </div>
+
+        {% for one_js in js %}
+            <script src="{{ one_js }}"></script>
+        {% endfor %}
+    </div>
+  </body>
+</html>

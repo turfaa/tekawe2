@@ -43,6 +43,7 @@ def callback():
 
         if (not(db.getPlayerName(event.source.user_id))):
             name = line_bot_api.get_profile(event.source.user_id).display_name
+            db.addOut(event.source.iuser_id, 'Halo {}, selamat bergabung :3 :3 :3\n\nDaftar perintah:\n/baru : membuat permainan baru\n/mulai : memulai permainan\n/join <token> : memasuki permainan yang sudah dibuat orang lain\n/help : bantuan'.format(name))
             db.addPlayer(event.source.user_id, name)
 
         db.addIn(event.source.user_id, event.message.text)

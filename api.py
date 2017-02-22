@@ -12,8 +12,11 @@ db = dbhandler()
 
 @api.route('/newAdmin', methods=['POST'])
 def newAdminAPI():
-    if not('loggedIn' in session):
+    if not('token' in request.form):
         return local_make_response(json.dumps({'status' : False, 'message' : 'You are not logged in'}))
+
+    if not(db.getUsername(request.form['token'])):
+        return local_make_response(json.dumps({'status' : False, 'message' : 'Session not found'}))
 
     if ('username' in request.form) & ('password' in request.form):
         if db.registerAdmin(request.form['username'], request.form['password']):
@@ -26,18 +29,23 @@ def newAdminAPI():
 @api.route('/login', methods=['POST'])
 def loginAPI():
     if ('username' in request.form) & ('password' in request.form):
-        if db.loginAdmin(request.form['username'], request.form['password']):
-            session['loggedIn'] = request.form['username']
-            return local_make_response(json.dumps({'status' : True}))
+        token = db.loginAdmin(request.form['username'], request.form['password'])
+        if token:
+            return local_make_response(json.dumps({'status' : True, 'token' : token}))
         else:
             return local_make_response(json.dumps({'status' : False, 'message' : 'Username/password is wrong'}))
     else:
         return local_make_response(json.dumps({'status' : False, 'message' : 'Form is not complete'}))
 
-@api.route('/getPlayer')
-def getPlayer():
-    if not('loggedIn' in session):
-        return local_make_response(json.dumps({'status' : False, 'message' : 'You are not logged in'}))
+@api.route('/<token>/logout')
+def logoutAPI(token):
+    db.logoutAdmin(token)
+    return local_make_response(json.dumps({'status' : True}))
+
+@api.route('/<token>/getPlayer')
+def getPlayer(token):
+    if not(db.getUsername(token)):
+        return local_make_response(json.dumps({'status' : False, 'message' : 'Session not found'}))
 
     result = list(db.getPlayer())
 
@@ -45,11 +53,11 @@ def getPlayer():
         result[i] = list(result[i])
     return local_make_response(json.dumps({'status' : True, 'data' : result}))
 
-@api.route('/getInMessage/', defaults={'playerId' : None, 'lastId' : 0})
-@api.route('/getInMessage/<playerId>/<int:lastId>/')
-def getInMessageAPI(playerId, lastId):
-    if not('loggedIn' in session):
-        return local_make_response(json.dumps({'status' : False, 'message' : 'You are not logged in'}))
+@api.route('/<token>/getInMessage/', defaults={'playerId' : None, 'lastId' : 0})
+@api.route('/<token>/getInMessage/<playerId>/<int:lastId>/')
+def getInMessageAPI(token, playerId, lastId):
+    if not(db.getUsername(token)):
+        return local_make_response(json.dumps({'status' : False, 'message' : 'Session not found'}))
 
     result = list(db.getInMessage(lastId = lastId, playerId = playerId))
 

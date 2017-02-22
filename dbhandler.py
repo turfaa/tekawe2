@@ -1,6 +1,7 @@
 import MySQLdb
 from werkzeug.security import generate_password_hash, check_password_hash
 from myconfig import host, user, password, database
+from util import randomString
 
 class dbhandler:
     def __init__(self, host = host, user = user, password = password, database = database):
@@ -35,6 +36,28 @@ class dbhandler:
 
         return True
 
+    def getUsername(self, token):
+        self.eternal()
+
+        self.c.execute('select username from session where token=%s', (token, ))
+
+        if (self.c.rowcount > 0):
+            return self.c.fetchone()[0]
+        else:
+            return False
+
+    def newToken(self, username):
+        self.eternal()
+
+        token = randomString(16)
+        while(self.getUsername(token)):
+            token = randomString(16)
+
+        self.c.execute('insert into session (token, username) values (%s, %s)', (token, username))
+        self.conn.commit()
+
+        return token
+
     def loginAdmin(self, username, password):
         self.eternal()
 
@@ -43,11 +66,17 @@ class dbhandler:
         if self.c.rowcount > 0:
             res = self.c.fetchone()[0]
             if check_password_hash(res, password):
-                return True
+                return self.newToken(username)
             else:
                 return False
         else:
             return False
+
+    def logoutAdmin(self, token):
+        self.eternal()
+
+        self.c.execute('delete from session where token=%s', (token,))
+        self.conn.commit()
 
     def addPlayer(self, playerId, name):
         self.eternal()
