@@ -29,7 +29,7 @@ def index():
     for i in range(len(user)):
         user[i] = {'name' : user[i][1], 'link' : url_for('web.showChat', playerId = user[i][0])}
 
-    return render_template('dashboard.html',css = current_app.config['css'], js = current_app.config['js'], loggedIn = True, logout = url_for('web.logout'), users = user, home = url_for('web.index'))
+    return render_template('dashboard.html',css = current_app.config['css'], js = current_app.config['js'], loggedIn = True, logout = url_for('web.logout'), users = user, home = url_for('web.index'), showChat = url_for('web.showChat'))
 
 @web.route('/login', methods = ['POST'])
 def login():
@@ -55,8 +55,11 @@ def showChat(playerId):
     if not('token' in session):
         return render_template('login.html', css = current_app.config['css'], js = current_app.config['js'], formAction = url_for('web.login'), home = url_for('web.index'))
 
-    print('getInMessage/{}/'.format(playerId))
-    chat = json.loads(req.GET('getInMessage/{}/0'.format(playerId), {'token' : session['token']}))
+    if playerId:
+        chat = json.loads(req.GET('getInMessage/{}/0'.format(playerId), {'token' : session['token']}))
+    else:
+        chat = json.loads(req.GET('getInMessage/'.format(playerId), {'token' : session['token']}))
+
     if chat['status']:
         chat = chat['data']
     else:

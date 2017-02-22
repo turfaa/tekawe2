@@ -8,12 +8,13 @@ from flask import request
 from dbhandler import dbhandler
 
 api = Blueprint('api', __name__)
-db = dbhandler()
 
 @api.route('/newAdmin', methods=['POST'])
 def newAdminAPI():
     if not('token' in request.form):
         return local_make_response(json.dumps({'status' : False, 'message' : 'You are not logged in'}))
+
+    db = dbhandler()
 
     if not(db.getUsername(request.form['token'])):
         return local_make_response(json.dumps({'status' : False, 'message' : 'Session not found'}))
@@ -29,6 +30,7 @@ def newAdminAPI():
 @api.route('/login', methods=['POST'])
 def loginAPI():
     if ('username' in request.form) & ('password' in request.form):
+        db = dbhandler()
         token = db.loginAdmin(request.form['username'], request.form['password'])
         if token:
             return local_make_response(json.dumps({'status' : True, 'token' : token}))
@@ -39,14 +41,17 @@ def loginAPI():
 
 @api.route('/logout')
 def logoutAPI():
+    db = dbhandler()
     db.logoutAdmin(request.args.get('token'))
     return local_make_response(json.dumps({'status' : True}))
 
 @api.route('/getPlayer')
 def getPlayer():
+    db = dbhandler()
     if not(db.getUsername(request.args.get('token'))):
         return local_make_response(json.dumps({'status' : False, 'message' : 'Session not found'}))
 
+    print(db.getUsername(request.args.get('toke')))
     result = list(db.getPlayer())
 
     for i in range(len(result)):
@@ -56,6 +61,7 @@ def getPlayer():
 @api.route('/getInMessage/', defaults={'playerId' : None, 'lastId' : 0})
 @api.route('/getInMessage/<playerId>/<int:lastId>/')
 def getInMessageAPI(playerId, lastId):
+    db = dbhandler()
     if not(db.getUsername(request.args.get('token'))):
         return local_make_response(json.dumps({'status' : False, 'message' : 'Session not found'}))
 
