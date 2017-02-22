@@ -22,10 +22,11 @@ line = Blueprint('line', __name__)
 
 line_bot_api = LineBotApi(channel_access_token)
 parser = WebhookParser(channel_secret)
-db = dbhandler()
 
 @line.route("/callback", methods=['POST'])
 def callback():
+    db = dbhandler()
+    
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
 
